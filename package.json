@@ -1,0 +1,73 @@
+{
+  "name": "ez2on-remake-launcher",
+  "productName": "ez2on-remake-launcher",
+  "version": "1.0.0",
+  "description": "EZ2ON Remake Launcher&Updater",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": "Freezer.CH",
+  "license": "GPL3.0",
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "electronPackagerConfig": {
+        "ignore": [
+          "client",
+          "src/src.*",
+          "download",
+          ".gitignore",
+          "LICENSE",
+          "README.md",
+          "client_version.json"
+        ]
+      },
+      "makers": [{
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "ez2on_remake_launcher"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "7zip-bin": "^4.1.0",
+    "electron-compile": "^6.4.4",
+    "electron-is-dev": "^1.1.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "jquery": "^3.4.1",
+    "node-7z": "^1.1.0",
+    "request": "^2.88.0",
+    "request-progress": "^3.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.39",
+    "@electron-forge/maker-deb": "^6.0.0-beta.39",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.39",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.39",
+    "@electron-forge/maker-zip": "^6.0.0-beta.39",
+    "electron": "5.0.2",
+    "electron-prebuilt-compile": "4.0.0"
+  }
+}

@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EZ2ON Remake Launcher</title>
+
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: '微软雅黑';
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row clearfix" style="margin-top: 10px">
+      <div class="col-md-12 column">
+        <div class="jumbotron">
+          <h1 style="font-size: 48px">
+            EZ2ON Remake Beta1
+          </h1>
+          <p style="font-size: 18px">
+            EZ2ON全新非官方重制版，目前测试阶段游戏仍有很多问题<br>
+            反馈QQ群：244024727
+          </p>
+          <p>
+            <button type="button" class="btn btn-primary btn-large" id="btnDownload">歌曲下载</button>
+            请将歌曲文件放到本程序目录client\EZRData下
+          </p>
+          <p style="font-size: 12px; float: right">Powered by: Freezer.CH</p>
+        </div>
+        <div class="progress mb-2">
+          <div class="progress-bar progress-bar-striped active" id="progress">
+          </div>
+        </div>
+        <div class="alert alert-success" id="alertInfo">
+        </div>
+        <button type="button" class="btn btn-lg btn-primary btn-block" id="btnUpdate">更新</button>
+        <button type="button" class="btn btn-lg btn-primary btn-block" id="btnStart">开始游戏</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.$ = window.jQuery = require('jquery');
+    const {
+      app,
+      dialog
+    } = require('electron').remote;
+    const fs = require('fs');
+    const path = require('path');
+    const request = require('request');
+    const progress = require('request-progress');
+    const sevenBin = require('7zip-bin');
+    const seven = require('node-7z');
+    const childProcess = require('child_process');
+    let localClient = {};
+    let remoteClient = {};
+    try {
+      localClient = JSON.parse(fs.readFileSync('client_version.json', 'utf8'));
+    } catch (err) {
+      localClient.version = -1;
+    }
+  </script>
+  <script src="js/bootstrap.min.js"></script>
+  <script>
+    $(() => {
+      // 下载地址
+      $('#btnDownload').click(() => {
+        dialog.showMessageBox({
+          type: "info",
+          message: '敬请期待'
+        });
+      });
+
+      const alertInfo = $('#alertInfo');
+      const btnUpdate = $('#btnUpdate');
+      const btnStart = $('#btnStart');
+      const dlProgress = $('#progress');
+
+      function checkUpdate() {
+        btnUpdate.attr('disabled', true);
+        btnStart.attr('disabled', true);
+        alertInfo.removeAttr('class');
+        alertInfo.addClass('alert alert-info');
+        alertInfo.text("检查更新中");
+        request('https://ez2on.gameoldboy.com/ez2on-remake/client_version.json', (error, response, body) => {
+          if (error) {
+            remoteClient.version = -1;
+            alertInfo.removeAttr('class');
+            alertInfo.addClass('alert alert-danger');
+            alertInfo.text("检查更新失败");
+          } else {
+            try {
+              remoteClient = JSON.parse(body);
+            } catch (err) {
+              remoteClient.version = -1;
+            }
+          }
+          if (remoteClient.version < 0) {
+            btnStart.attr('disabled', false);
+            return;
+          }
+          if (remoteClient.version > localClient.version) {
+            alertInfo.text(`发现新版本：${remoteClient.version}`);
+            btnUpdate.attr('disabled', false);
+            btnStart.attr('disabled', false);
+          } else {
+            alertInfo.removeAttr('class');
+            alertInfo.addClass('alert alert-success');
+            alertInfo.text(`当前为最新版本：${localClient.version}`);
+            btnStart.attr('disabled', false);
+          }
+        });
+      }
+      checkUpdate();
+
+      btnUpdate.click(() => {
+        updateClient();
+        btnUpdate.attr('disabled', true);
+        btnStart.attr('disabled', true);
+      });
+
+      function updateClient() {
+        if (!fs.existsSync('download'))
+          fs.mkdirSync('download');
+        alertInfo.text('下载中...');
+        progress(request(remoteClient.url + '/' + remoteClient.filename), {})
+          .on('progress', state => {
+            dlProgress.attr('style', `width: ${parseInt(state.percent * 100)}%`);
+          })
+          .on('error', err => {
+            dialog.showMessageBox({
+              type: "error",
+              message: '下载失败'
+            });
+            checkUpdate();
+          })
+          .on('end', () => {
+            dlProgress.attr('style', `width: 100%`);
+
+            if (!fs.existsSync('client'))
+              fs.mkdirSync('client');
+            alertInfo.text('解压中...');
+            const myStream = seven.extractFull(path.join('download', 'client.7z'),
+              'client', {
+                $bin: sevenBin.path7za,
+                $progress: true,
+                overwrite: 'a'
+              });
+            myStream.on('progress', progress => {
+              dlProgress.attr('style', `width: ${parseInt(progress.percent)}%`);
+            });
+            myStream.on('error', err => {
+              dialog.showMessageBox({
+                type: "error",
+                message: '解压失败'
+              });
+              checkUpdate();
+            });
+            myStream.on('end', () => {
+              dlProgress.attr('style', `width: 100%`);
+              localClient = remoteClient;
+              fs.writeFileSync('client_version.json', JSON.stringify(localClient,
+                null, 2), 'utf8');
+              checkUpdate();
+            });
+          })
+          .pipe(fs.createWriteStream(path.join('download', 'client.7z')));
+      }
+
+      btnStart.click(() => {
+        if (!fs.existsSync(path.join('client', 'EZ2ON Remake.exe'))) {
+          dialog.showMessageBox({
+            type: "error",
+            message: '请先更新游戏'
+          });
+        } else {
+          childProcess.spawn(path.join('client', 'EZ2ON Remake.exe'), {
+            detached: true,
+            stdio: 'ignore'
+          });
+          app.quit();
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

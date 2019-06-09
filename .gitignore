@@ -59,3 +59,9 @@ typings/
 
 # next.js build output
 .next
+
+client/
+out/
+download/
+src/src.*
+client_version.json
