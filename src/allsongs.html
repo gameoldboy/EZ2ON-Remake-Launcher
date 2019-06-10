@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>歌曲包下载</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row clearfix" style="margin-top: 10px">
+            <div class="col-md-12 column">
+                <p>
+                    百度盘 链接：
+                    <a id="link1"></a>
+                    提取码：
+                    <span id="passwd1"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.$ = window.jQuery = require('jquery');
+        const {
+            shell
+        } = require('electron').remote;
+        const contextMenu = require('electron-context-menu');
+        contextMenu({
+            labels: {
+                cut: '剪切',
+                copy: '复制',
+                paste: '粘贴',
+                saveImage: '保存图片',
+                saveImageAs: '图片另存为...',
+                copyImageAddress: '复制图片地址',
+                copyLink: '复制链接',
+                inspect: '检查元素',
+            }
+        });
+    </script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+        $(() => {
+            const link1url = 'https://pan.baidu.com/s/1xeV5M9QkQz2xU3gPU9OLwQ';
+            const passwd1text = 'dlaz';
+            const link1 = $('#link1');
+            const passwd1 = $('#passwd1');
+            link1.text(link1url);
+            passwd1.text(passwd1text);
+            link1.click(() => {
+                shell.openExternal(link1url);
+            });
+        });
+    </script>
+</body>
+
+</html>

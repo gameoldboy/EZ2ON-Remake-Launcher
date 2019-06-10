@@ -50,7 +50,9 @@
     window.$ = window.jQuery = require('jquery');
     const {
       app,
-      dialog
+      dialog,
+      BrowserWindow,
+      getCurrentWindow
     } = require('electron').remote;
     const fs = require('fs');
     const path = require('path');
@@ -82,9 +84,26 @@
     $(() => {
       // 下载地址
       $('#btnDownload').click(() => {
-        dialog.showMessageBox({
-          type: "info",
-          message: '敬请期待'
+        let win = new BrowserWindow({
+          parent: getCurrentWindow(),
+          modal: true,
+          width: 400,
+          height: 300,
+          webPreferences: {
+            nodeIntegration: true
+          },
+          resizable: false,
+          show: false
+        });
+        win.loadFile(`${__dirname}/allsongs.html`);
+        // win.webContents.openDevTools({
+        //   mode: 'undocked'
+        // });
+        win.on('closed', () => {
+          win = null
+        });
+        win.once('ready-to-show', () => {
+          win.show()
         });
       });
 
