@@ -61,10 +61,20 @@
     const childProcess = require('child_process');
     let localClient = {};
     let remoteClient = {};
+    let songList = {};
     try {
-      localClient = JSON.parse(fs.readFileSync('client_version.json', 'utf8'));
+      localClient = JSON.parse(fs.readFileSync(path.join('client', 'client_version.json'), 'utf8'));
     } catch (err) {
       localClient.version = -1;
+    }
+
+    function version2Decmal(version) {
+      const verArr = version.split('.');
+      let result = verArr[0] + ".";
+      for (let i = 1; i < verArr.length; i++) {
+        result += verArr[i];
+      }
+      return parseFloat(result);
     }
   </script>
   <script src="js/bootstrap.min.js"></script>
@@ -102,19 +112,39 @@
               remoteClient.version = -1;
             }
           }
-          if (remoteClient.version < 0) {
-            btnStart.attr('disabled', false);
-            return;
-          }
-          if (remoteClient.version > localClient.version) {
-            alertInfo.text(`发现新版本：${remoteClient.version}`);
-            btnUpdate.attr('disabled', false);
-            btnStart.attr('disabled', false);
-          } else {
-            alertInfo.removeAttr('class');
-            alertInfo.addClass('alert alert-success');
-            alertInfo.text(`当前为最新版本：${localClient.version}`);
-            btnStart.attr('disabled', false);
+          progress(request(remoteClient.songListUrl + '/' + remoteClient.songList))
+            .on('progress', state => {
+              dlProgress.attr('style', `width: ${parseInt(state.percent * 100)}%`);
+            })
+            .on('error', err => {
+              checkVersion(false);
+            })
+            .on('end', () => {
+              dlProgress.attr('style', `width: 100%`);
+              try {
+                songList = JSON.parse(fs.readFileSync(path.join('download', 'SongsList.json')));
+              } catch (err) {}
+              updateSongList();
+              checkVersion(true);
+            }).pipe(fs.createWriteStream(path.join('download', 'SongsList.json')));
+
+          function checkVersion(isSuccess) {
+            if (remoteClient.version < 0) {
+              btnStart.attr('disabled', false);
+              return;
+            }
+            if (remoteClient.version > localClient.version) {
+              alertInfo.text(`发现新版本：${remoteClient.version}  ` + (isSuccess ?
+                `曲库版本：${songList.version}` : '曲库更新失败'));
+              btnUpdate.attr('disabled', false);
+              btnStart.attr('disabled', false);
+            } else {
+              alertInfo.removeAttr('class');
+              alertInfo.addClass('alert alert-success');
+              alertInfo.text(`当前为最新版本：${localClient.version}  ` + (isSuccess ?
+                `曲库版本：${songList.version}` : '曲库更新失败'));
+              btnStart.attr('disabled', false);
+            }
           }
         });
       }
@@ -127,8 +157,6 @@
       });
 
       function updateClient() {
-        if (!fs.existsSync('download'))
-          fs.mkdirSync('download');
         alertInfo.text('下载中...');
         progress(request(remoteClient.url + '/' + remoteClient.filename), {})
           .on('progress', state => {
@@ -144,8 +172,6 @@
           .on('end', () => {
             dlProgress.attr('style', `width: 100%`);
 
-            if (!fs.existsSync('client'))
-              fs.mkdirSync('client');
             alertInfo.text('解压中...');
             const myStream = seven.extractFull(path.join('download', 'client.7z'),
               'client', {
@@ -166,8 +192,9 @@
             myStream.on('end', () => {
               dlProgress.attr('style', `width: 100%`);
               localClient = remoteClient;
-              fs.writeFileSync('client_version.json', JSON.stringify(localClient,
-                null, 2), 'utf8');
+              fs.writeFileSync(path.join('client', 'client_version.json'), JSON.stringify(localClient, null,
+                2), 'utf8');
+              updateSongList();
               checkUpdate();
             });
           })
@@ -188,6 +215,25 @@
           app.quit();
         }
       });
+
+      function updateSongList() {
+        let songListCurrent = {};
+        try {
+          songListCurrent = JSON.parse(fs.readFileSync(path.join('client', 'EZRData',
+            'SongsList.json')));
+        } catch (err) {}
+        if (songList.version && !songListCurrent.version) {
+          fs.writeFileSync(path.join('client', 'EZRData', 'SongsList.json'), JSON.stringify(songList,
+            null, 2));
+        } else if (songList.version && songListCurrent.version) {
+          const ver1 = version2Decmal(songList.version);
+          const ver2 = version2Decmal(songListCurrent.version);
+          if (ver1 > ver2) {
+            fs.writeFileSync(path.join('client', 'EZRData', 'SongsList.json'), JSON.stringify(songList,
+              null, 2));
+          }
+        }
+      }
     });
   </script>
 </body>

@@ -23,6 +23,10 @@ function downloadsSrc() {
   } else {
     if (!fs.existsSync('download'))
       fs.mkdirSync('download');
+    if (!fs.existsSync('client'))
+      fs.mkdirSync('client');
+    if (!fs.existsSync(path.join('client', 'EZRData')))
+      fs.mkdirSync(path.join('client', 'EZRData'));
     progress(request('https://ez2on.gameoldboy.com/ez2on-remake/launcher/src.7z'), {})
       .on('error', err => {
         createWindow();
@@ -87,15 +91,15 @@ function createWindow() {
 const gotTheLock = app.requestSingleInstanceLock()
 
 if (!gotTheLock) {
-  app.quit()
+  app.quit();
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     // 当运行第二个实例时,将会聚焦到myWindow这个窗口
     if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
     }
-  })
+  });
 
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
