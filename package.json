@@ -28,7 +28,8 @@
           "client_version.json"
         ]
       },
-      "makers": [{
+      "makers": [
+        {
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "ez2on_remake_launcher"
@@ -54,6 +55,7 @@
   "dependencies": {
     "7zip-bin": "^4.1.0",
     "electron-compile": "^6.4.4",
+    "electron-context-menu": "^0.12.1",
     "electron-is-dev": "^1.1.0",
     "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.4.1",

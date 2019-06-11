@@ -8,6 +8,11 @@
     <title>歌曲包下载</title>
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: '微软雅黑'
+        }
+    </style>
 </head>
 
 <body>
@@ -19,6 +24,16 @@
                     <a id="link1"></a>
                     提取码：
                     <span id="passwd1"></span>
+                </p>
+                <p>
+                    百度盘 beta1整合包 链接：
+                    <a id="link2"></a>
+                    提取码：
+                    <span id="passwd2"></span>
+                </p>
+                <p>
+                    Mega beta1整合包 链接：
+                    <a id="link3"></a>
                 </p>
             </div>
         </div>
@@ -48,12 +63,27 @@
         $(() => {
             const link1url = 'https://pan.baidu.com/s/1xeV5M9QkQz2xU3gPU9OLwQ';
             const passwd1text = 'dlaz';
+            const link2url = 'https://pan.baidu.com/s/1iC47TZgBuEoF4FM7FUNyIg';
+            const passwd2text = 'gndd';
+            const link3url = 'https://mega.nz/#!2eRwGaCb!nTe60235eyWR2Dl-q1RvojCv4Vtl7keZkNekAjzSmM8';
             const link1 = $('#link1');
             const passwd1 = $('#passwd1');
+            const link2 = $('#link2');
+            const link3 = $('#link3');
+            const passwd2 = $('#passwd2');
             link1.text(link1url);
+            link2.text(link2url);
+            link3.text(link3url);
             passwd1.text(passwd1text);
+            passwd2.text(passwd2text);
             link1.click(() => {
                 shell.openExternal(link1url);
+            });
+            link2.click(() => {
+                shell.openExternal(link2url);
+            });
+            link3.click(() => {
+                shell.openExternal(link3url);
             });
         });
     </script>
