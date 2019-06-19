@@ -32,7 +32,13 @@
             <button type="button" class="btn btn-primary btn-large" id="btnDownload">歌曲下载</button>
             请将歌曲文件放到本程序目录client\EZRData下
           </p>
-          <p style="font-size: 12px; float: right">Powered by: Freezer.CH</p>
+          <a id="vcredist2015">
+            WIN7用户需要下载安装Visual C++ Redist 2015
+          </a>
+          <p style="font-size: 12px; float: right">
+            Powered by: Freezer.CH<br>
+            特别感谢: Rain、DJAmeto
+          </p>
         </div>
         <div class="progress mb-2">
           <div class="progress-bar progress-bar-striped active" id="progress">
@@ -52,7 +58,8 @@
       app,
       dialog,
       BrowserWindow,
-      getCurrentWindow
+      getCurrentWindow,
+      shell
     } = require('electron').remote;
     const fs = require('fs');
     const path = require('path');
@@ -77,6 +84,14 @@
         result += verArr[i];
       }
       return parseFloat(result);
+    }
+
+    function isRunning(query) {
+      return new Promise((resolve, reject) => {
+        childProcess.exec('tasklist', (err, stdout, stderr) => {
+          resolve(stdout.toLowerCase().indexOf(query.toLowerCase()) > -1);
+        });
+      });
     }
   </script>
   <script src="js/bootstrap.min.js"></script>
@@ -169,7 +184,14 @@
       }
       checkUpdate();
 
-      btnUpdate.click(() => {
+      btnUpdate.click(async () => {
+        if (await isRunning('EZ2ON Remake.exe')) {
+          dialog.showMessageBox(getCurrentWindow(), {
+            type: "error",
+            message: '游戏正在运行，请先关闭游戏'
+          });
+          return;
+        }
         updateClient();
         btnUpdate.attr('disabled', true);
         btnStart.attr('disabled', true);
@@ -182,7 +204,7 @@
             dlProgress.attr('style', `width: ${parseInt(state.percent * 100)}%`);
           })
           .on('error', err => {
-            dialog.showMessageBox({
+            dialog.showMessageBox(getCurrentWindow(), {
               type: "error",
               message: '下载失败'
             });
@@ -202,7 +224,7 @@
               dlProgress.attr('style', `width: ${parseInt(progress.percent)}%`);
             });
             myStream.on('error', err => {
-              dialog.showMessageBox({
+              dialog.showMessageBox(getCurrentWindow(), {
                 type: "error",
                 message: '解压失败'
               });
@@ -222,7 +244,7 @@
 
       btnStart.click(() => {
         if (!fs.existsSync(path.join('client', 'EZ2ON Remake.exe'))) {
-          dialog.showMessageBox({
+          dialog.showMessageBox(getCurrentWindow(), {
             type: "error",
             message: '请先更新游戏'
           });
@@ -253,6 +275,10 @@
           }
         }
       }
+
+      $('#vcredist2015').click(() => {
+        shell.openExternal('https://www.microsoft.com/zh-cn/download/details.aspx?id=48145');
+      });
     });
   </script>
 </body>
