@@ -37,7 +37,8 @@
           </a>
           <p style="font-size: 12px; float: right">
             Powered by: Freezer.CH<br>
-            特别感谢: Rain、DJAmeto
+            特别感谢: Rain、DJAmeto<br>
+            参与谱师: Biemote
           </p>
         </div>
         <div class="progress mb-2">
@@ -81,7 +82,7 @@
       const verArr = version.split('.');
       let result = verArr[0] + ".";
       for (let i = 1; i < verArr.length; i++) {
-        result += verArr[i];
+        result += verArr[i].padStart(2, '0');
       }
       return parseFloat(result);
     }
